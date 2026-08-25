@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: "Outfit", sans-serif;
+    background-color: #f8f4ed;
+    color: #0f0e0c;
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4 { font-family: "Cormorant Garamond", serif; }
+}
+
+@layer components {
+  /* ── Buttons ────────────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-medium rounded-full
+           transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed
+           focus:outline-none focus:ring-2 focus:ring-offset-1;
+  }
+  .btn-sm  { @apply btn px-4 py-1.5 text-sm; }
+  .btn-md  { @apply btn px-6 py-2.5 text-sm; }
+  .btn-lg  { @apply btn px-8 py-3   text-base; }
+
+  .btn-dark  { @apply bg-ink text-parch hover:bg-stone-800 focus:ring-ink/30; }
+  .btn-light { @apply bg-warm text-ink hover:bg-stone-200  focus:ring-stone-300; }
+  .btn-ghost { @apply border border-stone-300 text-ink hover:bg-stone-100 focus:ring-stone-200; }
+  .btn-rust  { @apply bg-rust text-white hover:bg-orange-700 focus:ring-rust/30; }
+
+  /* ── Cards ──────────────────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden;
+  }
+  .card-hover {
+    @apply card transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+  }
+
+  /* ── Form elements ──────────────────────────────────────── */
+  .field-label {
+    @apply block text-xs font-medium text-stone-500 mb-1.5 uppercase tracking-widest;
+  }
+  .field-input {
+    @apply w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm
+           text-ink placeholder-stone-400
+           focus:outline-none focus:ring-2 focus:ring-clay/50 focus:border-clay
+           transition-all duration-150;
+  }
+  .field-select {
+    @apply field-input appearance-none cursor-pointer;
+  }
+
+  /* ── Badges ─────────────────────────────────────────────── */
+  .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+  .badge-casual    { @apply badge bg-emerald-100 text-emerald-700; }
+  .badge-formal    { @apply badge bg-indigo-100  text-indigo-700; }
+  .badge-semi      { @apply badge bg-amber-100   text-amber-700; }
+  .badge-summer    { @apply badge bg-orange-100  text-orange-700; }
+  .badge-winter    { @apply badge bg-sky-100     text-sky-700; }
+  .badge-spring    { @apply badge bg-pink-100    text-pink-700; }
+  .badge-autumn    { @apply badge bg-yellow-100  text-yellow-800; }
+  .badge-allseason { @apply badge bg-stone-100   text-stone-600; }
+
+  /* ── Page wrapper ───────────────────────────────────────── */
+  .page { @apply max-w-6xl mx-auto px-4 sm:px-6 py-8 animate-fade-up; }
+  .page-title { @apply font-display text-3xl sm:text-4xl font-semibold mb-1; }
+  .page-sub   { @apply text-stone-500 text-sm mb-8; }
+}
