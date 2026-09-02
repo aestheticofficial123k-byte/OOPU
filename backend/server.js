@@ -26,7 +26,10 @@ const app = express();
 
 // ── Global middleware ─────────────────────────────────────────────────────────
 app.use(cors({
-  origin:      process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: [
+    'http://localhost:5173',
+    'https://oopu.vercel.app'
+  ],
   credentials: true,
 }));
 app.use(express.json());
