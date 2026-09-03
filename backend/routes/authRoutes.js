@@ -1,34 +1,88 @@
 /**
  * routes/authRoutes.js
- * Auth endpoints: register, login, me
+ * Auth endpoints: email/password, phone OTP, me
  */
-const express  = require('express');
+const express = require('express');
 const { body } = require('express-validator');
-const { register, login, getMe } = require('../controllers/authController');
-const { protect }  = require('../middleware/auth');
-const validate     = require('../middleware/validate');
+
+const {
+  register,
+  login,
+  phoneLogin,
+  getMe,
+} = require('../controllers/authController');
+
+const { protect } = require('../middleware/auth');
+const validate = require('../middleware/validate');
 
 const router = express.Router();
 
-router.post('/register',
+// ── Email / Password Register ────────────────────────────────────────────────
+// Email signup does NOT require a phone number.
+router.post(
+  '/register',
   [
-    body('name').trim().notEmpty().withMessage('Name is required'),
-    body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('name')
+      .trim()
+      .notEmpty()
+      .withMessage('Name is required'),
+
+    body('email')
+      .isEmail()
+      .normalizeEmail()
+      .withMessage('Valid email is required'),
+
+    body('password')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters'),
   ],
   validate,
   register
 );
 
-router.post('/login',
+// ── Email / Password Login ───────────────────────────────────────────────────
+// Email login does NOT require a phone number.
+router.post(
+  '/login',
   [
-    body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-    body('password').notEmpty().withMessage('Password is required'),
+    body('email')
+      .isEmail()
+      .normalizeEmail()
+      .withMessage('Valid email is required'),
+
+    body('password')
+      .notEmpty()
+      .withMessage('Password is required'),
   ],
   validate,
   login
 );
 
+// ── Phone / OTP Login ────────────────────────────────────────────────────────
+// Temporary OTP: 123456
+// Phone login does NOT require an email.
+router.post(
+  '/phone',
+  [
+    body('phone')
+      .trim()
+      .notEmpty()
+      .withMessage('Phone number is required'),
+
+    body('otp')
+      .trim()
+      .notEmpty()
+      .withMessage('OTP is required'),
+
+    body('otp')
+      .equals('8934')
+      .withMessage('Invalid OTP'),
+  ],
+  validate,
+  phoneLogin
+);
+
+// ── Get Current User ─────────────────────────────────────────────────────────
 router.get('/me', protect, getMe);
 
 module.exports = router;

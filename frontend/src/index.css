@@ -6,7 +6,7 @@
   *, *::before, *::after { box-sizing: border-box; }
   body {
     font-family: "Outfit", sans-serif;
-    background-color: #f8f4ed;
+    background-color:#FFF4E3;;
     color: #0f0e0c;
     min-height: 100vh;
   }

@@ -1,22 +1,32 @@
 /**
  * context/AuthContext.jsx
  * Global authentication state using React Context API.
- * Provides: user, token, login(), register(), logout(), loading
+ * Provides: user, token, login(), register(), phoneLogin(), logout(), loading
  */
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
-import { login as loginApi, register as registerApi, getMe } from "../api/authApi"
+import {
+  login as loginApi,
+  register as registerApi,
+  phoneLogin as phoneLoginApi,
+  getMe,
+} from "../api/authApi"
 
 const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
-  const [user,    setUser]    = useState(null)
-  const [loading, setLoading] = useState(true)  // true while validating stored token
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   // Restore session from localStorage on app boot
   useEffect(() => {
     const restore = async () => {
       const token = localStorage.getItem("token")
-      if (!token) { setLoading(false); return }
+
+      if (!token) {
+        setLoading(false)
+        return
+      }
+
       try {
         const { data } = await getMe()
         setUser(data.user)
@@ -27,23 +37,41 @@ export const AuthProvider = ({ children }) => {
         setLoading(false)
       }
     }
+
     restore()
   }, [])
 
+  // Email registration
   const register = useCallback(async (credentials) => {
     const { data } = await registerApi(credentials)
+
     localStorage.setItem("token", data.token)
     setUser(data.user)
+
     return data
   }, [])
 
+  // Email login
   const login = useCallback(async (credentials) => {
     const { data } = await loginApi(credentials)
+
     localStorage.setItem("token", data.token)
     setUser(data.user)
+
     return data
   }, [])
 
+  // Phone login / registration
+  const phoneLogin = useCallback(async (credentials) => {
+    const { data } = await phoneLoginApi(credentials)
+
+    localStorage.setItem("token", data.token)
+    setUser(data.user)
+
+    return data
+  }, [])
+
+  // Logout
   const logout = useCallback(() => {
     localStorage.removeItem("token")
     localStorage.removeItem("user")
@@ -51,7 +79,17 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAuth: !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        phoneLogin,
+        logout,
+        isAuth: !!user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
@@ -59,6 +97,10 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error("useAuth must be used within <AuthProvider>")
+
+  if (!ctx) {
+    throw new Error("useAuth must be used within <AuthProvider>")
+  }
+
   return ctx
 }
