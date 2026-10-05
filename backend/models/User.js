@@ -1,54 +1,80 @@
 /**
  * models/User.js
- * User schema supporting email/password, phone, Google, and Facebook auth.
+ * User schema supporting email/password, phone, Google, Facebook,
+ * username, and profile customization.
  */
 const mongoose = require('mongoose');
-const bcrypt   = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema(
   {
     name: {
-      type:      String,
-      required:  [true, 'Name is required'],
-      trim:      true,
+      type: String,
+      required: [true, 'Name is required'],
+      trim: true,
       maxlength: [50, 'Name cannot exceed 50 characters'],
+    },
+
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+      minlength: [3, 'Username must be at least 3 characters'],
+      maxlength: [20, 'Username cannot exceed 20 characters'],
+      match: [
+        /^[a-z0-9_]+$/,
+        'Username can only contain letters, numbers, and underscores',
+      ],
     },
 
     // Email/password authentication
     email: {
-      type:      String,
-      unique:    true,
-      sparse:    true,
+      type: String,
+      unique: true,
+      sparse: true,
       lowercase: true,
-      trim:      true,
-      match:     [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
     },
 
     password: {
-      type:      String,
+      type: String,
       minlength: [6, 'Password must be at least 6 characters'],
-      select:    false,
+      select: false,
     },
 
     // Phone authentication
     phone: {
-      type:   String,
+      type: String,
       unique: true,
       sparse: true,
-      trim:   true,
+      trim: true,
     },
 
     // Social authentication
     googleId: {
-      type:   String,
+      type: String,
       unique: true,
       sparse: true,
     },
 
     facebookId: {
-      type:   String,
+      type: String,
       unique: true,
       sparse: true,
+    },
+
+    // Profile
+    avatar: {
+      type: String,
+      default: '',
+    },
+
+    avatarColor: {
+      type: String,
+      default: '#CDEDEA',
     },
   },
   { timestamps: true }

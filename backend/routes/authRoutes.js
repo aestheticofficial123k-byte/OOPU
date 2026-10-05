@@ -1,6 +1,6 @@
 /**
  * routes/authRoutes.js
- * Auth endpoints: email/password, phone OTP, me
+ * Auth endpoints: email/password, phone OTP, Google, profile, me
  */
 const express = require('express');
 const { body } = require('express-validator');
@@ -9,6 +9,8 @@ const {
   register,
   login,
   phoneLogin,
+  googleLogin,
+  updateProfile,
   getMe,
 } = require('../controllers/authController');
 
@@ -59,7 +61,7 @@ router.post(
 );
 
 // ── Phone / OTP Login ────────────────────────────────────────────────────────
-// Temporary OTP: 123456
+// Temporary OTP: 8934
 // Phone login does NOT require an email.
 router.post(
   '/phone',
@@ -80,6 +82,27 @@ router.post(
   ],
   validate,
   phoneLogin
+);
+
+// ── Google Authentication ────────────────────────────────────────────────────
+router.post(
+  '/google',
+  [
+    body('idToken')
+      .notEmpty()
+      .withMessage('Google ID token is required'),
+  ],
+  validate,
+  googleLogin
+);
+
+// ── Update Profile ───────────────────────────────────────────────────────────
+// Allows authenticated users to update:
+// name, username, and avatar background color.
+router.put(
+  '/profile',
+  protect,
+  updateProfile
 );
 
 // ── Get Current User ─────────────────────────────────────────────────────────

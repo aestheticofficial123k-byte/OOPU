@@ -1,33 +1,56 @@
 import { useState, useEffect } from "react"
-import { getWeekPlan }    from "../api/plannerApi"
-import WeekCalendar       from "../components/planner/WeekCalendar"
-import PlanOutfitModal    from "../components/planner/PlanOutfitModal"
-import Spinner            from "../components/ui/Spinner"
-import Alert              from "../components/ui/Alert"
-import { getWeekDates, formatDate, isoDate } from "../utils/helpers"
+import { getWeekPlan } from "../api/plannerApi"
+
+import WeekCalendar from "../components/planner/WeekCalendar"
+import PlanOutfitModal from "../components/planner/PlanOutfitModal"
+import PlannedOutfitModal from "../components/planner/PlannedOutfitModal"
+import PerfectForToday from "../components/planner/PerfectForToday"
+
+import Spinner from "../components/ui/Spinner"
+import Alert from "../components/ui/Alert"
+
+import {
+  getWeekDates,
+  formatDate,
+  isoDate,
+} from "../utils/helpers"
 
 export default function CalendarPlannerPage() {
-  const [plans,    setPlans]    = useState([])
-  const [loading,  setLoading]  = useState(true)
-  const [error,    setError]    = useState("")
+  const [plans, setPlans] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+
   const [weekStart, setWeekStart] = useState(() => {
-    const d = new Date(); d.setHours(0,0,0,0); return d
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
   })
+
   const [selectedDate, setSelectedDate] = useState(null)
-  const [modalOpen,    setModalOpen]    = useState(false)
+
+  // Which modal is open?
+  const [planModalOpen, setPlanModalOpen] = useState(false)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
 
   const dates = getWeekDates(weekStart)
 
   const loadPlans = async () => {
-    setLoading(true); setError("")
+    setLoading(true)
+    setError("")
+
     try {
       const { data } = await getWeekPlan(isoDate(weekStart))
       setPlans(data.data)
-    } catch { setError("Failed to load week plan") }
-    finally { setLoading(false) }
+    } catch {
+      setError("Failed to load week plan")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  useEffect(() => { loadPlans() }, [weekStart])
+  useEffect(() => {
+    loadPlans()
+  }, [weekStart])
 
   const goWeek = (dir) => {
     const d = new Date(weekStart)
@@ -35,33 +58,95 @@ export default function CalendarPlannerPage() {
     setWeekStart(d)
   }
 
+  const existingPlan = selectedDate
+    ? plans.find(
+        (p) => isoDate(p.date) === isoDate(selectedDate)
+      )
+    : null
+
   const handleDayClick = (date) => {
+    const plan = plans.find(
+      (p) => isoDate(p.date) === isoDate(date)
+    )
+
     setSelectedDate(date)
-    setModalOpen(true)
+
+    if (plan) {
+      // Planned outfit → detail view
+      setDetailModalOpen(true)
+    } else {
+      // Empty day → planning modal
+      setPlanModalOpen(true)
+    }
   }
 
-  const existingPlan = selectedDate
-    ? plans.find(p => isoDate(p.date) === isoDate(selectedDate))
-    : null
+  const closeModals = () => {
+    setPlanModalOpen(false)
+    setDetailModalOpen(false)
+    setSelectedDate(null)
+  }
+
+  const handleEditPlan = () => {
+    setDetailModalOpen(false)
+    setPlanModalOpen(true)
+  }
 
   return (
     <div className="page">
-      <h1 className="page-title">Weekly Planner</h1>
-      <p className="page-sub">Plan and track your outfits for each day.</p>
 
-      {/* Week navigation */}
+      {/* ─────────────────────────────────────────────
+          PAGE HEADER
+      ───────────────────────────────────────────── */}
+      <div className="mb-8">
+        <p className="text-xs uppercase tracking-[0.18em] text-stone-400 mb-2">
+          Planner
+        </p>
+
+        <h1 className="font-display text-4xl sm:text-5xl">
+          Weekly Planner
+        </h1>
+
+        <p className="text-stone-500 mt-2">
+          Plan and track your outfits for each day.
+        </p>
+      </div>
+
+      {/* ─────────────────────────────────────────────
+          WEEK NAVIGATION
+      ───────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-6">
-        <button onClick={() => goWeek(-1)} className="btn-md btn-ghost">← Prev</button>
+        <button
+          onClick={() => goWeek(-1)}
+          className="btn-md btn-ghost"
+        >
+          ← Prev
+        </button>
+
         <p className="text-sm font-medium text-stone-600">
           {formatDate(dates[0])} — {formatDate(dates[6])}
         </p>
-        <button onClick={() => goWeek(1)} className="btn-md btn-ghost">Next →</button>
+
+        <button
+          onClick={() => goWeek(1)}
+          className="btn-md btn-ghost"
+        >
+          Next →
+        </button>
       </div>
 
-      <Alert message={error} type="error" onClose={() => setError("")} />
+      <Alert
+        message={error}
+        type="error"
+        onClose={() => setError("")}
+      />
 
+      {/* ─────────────────────────────────────────────
+          WEEKLY PLANNER
+      ───────────────────────────────────────────── */}
       {loading ? (
-        <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+        <div className="flex justify-center py-20">
+          <Spinner size="lg" />
+        </div>
       ) : (
         <WeekCalendar
           dates={dates}
@@ -72,17 +157,38 @@ export default function CalendarPlannerPage() {
       )}
 
       <p className="text-xs text-stone-400 text-center mt-4">
-        Click any day to plan or edit an outfit
+        Click a day to plan or view an outfit
       </p>
 
-      {modalOpen && selectedDate && (
+      {/* ─────────────────────────────────────────────
+          PERFECT FOR TODAY
+      ───────────────────────────────────────────── */}
+      <PerfectForToday />
+
+      {/* ─────────────────────────────────────────────
+          EMPTY DAY / EDIT MODAL
+      ───────────────────────────────────────────── */}
+      {planModalOpen && selectedDate && (
         <PlanOutfitModal
           date={selectedDate}
           existingPlan={existingPlan}
-          onClose={() => { setModalOpen(false); setSelectedDate(null) }}
+          onClose={closeModals}
           onSaved={loadPlans}
         />
       )}
+
+      {/* ─────────────────────────────────────────────
+          PLANNED OUTFIT DETAIL
+      ───────────────────────────────────────────── */}
+      {detailModalOpen && existingPlan && (
+        <PlannedOutfitModal
+          plan={existingPlan}
+          onClose={closeModals}
+          onEdit={handleEditPlan}
+          onSaved={loadPlans}
+        />
+      )}
+
     </div>
   )
 }

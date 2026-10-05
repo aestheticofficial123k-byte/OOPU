@@ -1,13 +1,17 @@
 /**
  * context/AuthContext.jsx
  * Global authentication state using React Context API.
- * Provides: user, token, login(), register(), phoneLogin(), logout(), loading
+ * Provides: user, token, login(), register(), phoneLogin(),
+ * googleLogin(), updateProfile(), logout(), loading
  */
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
+
 import {
   login as loginApi,
   register as registerApi,
   phoneLogin as phoneLoginApi,
+  googleLogin as googleLoginApi,
+  updateProfile as updateProfileApi,
   getMe,
 } from "../api/authApi"
 
@@ -71,6 +75,26 @@ export const AuthProvider = ({ children }) => {
     return data
   }, [])
 
+  // Google login / registration
+  const googleLogin = useCallback(async (idToken) => {
+    const { data } = await googleLoginApi({ idToken })
+
+    localStorage.setItem("token", data.token)
+    setUser(data.user)
+
+    return data
+  }, [])
+
+  // Update profile
+  const updateProfile = useCallback(async (updates) => {
+    const { data } = await updateProfileApi(updates)
+
+    setUser(data.user)
+    localStorage.setItem("user", JSON.stringify(data.user))
+
+    return data
+  }, [])
+
   // Logout
   const logout = useCallback(() => {
     localStorage.removeItem("token")
@@ -86,6 +110,8 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         phoneLogin,
+        googleLogin,
+        updateProfile,
         logout,
         isAuth: !!user,
       }}

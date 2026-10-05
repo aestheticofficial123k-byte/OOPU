@@ -1,6 +1,10 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth"
+
 import { useAuth } from "../../context/AuthContext"
+import { auth } from "../../config/firebase"
+
 import Alert from "../ui/Alert"
 import Spinner from "../ui/Spinner"
 
@@ -35,7 +39,14 @@ const countryCodes = [
 
 export default function AuthForm({ mode }) {
   const isLogin = mode === "login"
-  const { login, register, phoneLogin } = useAuth()
+
+  const {
+    login,
+    register,
+    phoneLogin,
+    googleLogin,
+  } = useAuth()
+
   const navigate = useNavigate()
 
   const [form, setForm] = useState({
@@ -131,6 +142,32 @@ export default function AuthForm({ mode }) {
     }
   }
 
+  // ── Google Login ───────────────────────────────────────────────────────────
+  const handleGoogleLogin = async () => {
+    setLoading(true)
+    setError("")
+
+    try {
+      const provider = new GoogleAuthProvider()
+
+      const result = await signInWithPopup(auth, provider)
+
+      const idToken = await result.user.getIdToken()
+
+      await googleLogin(idToken)
+
+      navigate("/")
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        err.message ||
+        "Google authentication failed"
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#FFF4E3] relative overflow-hidden">
 
@@ -193,7 +230,6 @@ export default function AuthForm({ mode }) {
             {/* Country + Phone */}
             <div className="flex gap-3">
 
-              {/* Country */}
               <select
                 value={form.countryCode}
                 onChange={e => update("countryCode", e.target.value)}
@@ -213,7 +249,6 @@ export default function AuthForm({ mode }) {
                 ))}
               </select>
 
-              {/* Phone Number */}
               <input
                 type="tel"
                 inputMode="numeric"
@@ -376,13 +411,29 @@ export default function AuthForm({ mode }) {
               )}
             </button>
 
-            {/* Phone option */}
+            {/* Divider */}
             <div className="flex items-center gap-3 py-2">
               <div className="flex-1 h-px bg-stone-300" />
               <span className="text-xs text-stone-400">OR</span>
               <div className="flex-1 h-px bg-stone-300" />
             </div>
 
+            {/* Google */}
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full bg-white text-[#171513] rounded-2xl
+                         py-5 text-base font-semibold
+                         border border-stone-200 shadow-sm
+                         hover:border-[#FF8066] transition-all
+                         disabled:opacity-50"
+            >
+              <span className="mr-3">G</span>
+              Continue with Google
+            </button>
+
+            {/* Phone option */}
             <button
               type="button"
               onClick={() => {
